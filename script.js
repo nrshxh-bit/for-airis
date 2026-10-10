@@ -1,11 +1,22 @@
 
-/* =====================================
-   BACKGROUND MUSIC
-===================================== */
+/* ==========================================
+   FOR AIRIS — FULL SCRIPT
+   Music, pages, surprise & Formspree
+========================================== */
+
+const FORMSPREE_URL = "https://formspree.io/f/myekjbeg";
 
 const music = document.getElementById("bg-music");
 const musicButton = document.getElementById("music-btn");
 const musicStatus = document.getElementById("music-status");
+
+let shyAttempts = 0;
+let replySubmitted = false;
+let replySubmitting = false;
+
+/* ==========================================
+   BACKGROUND MUSIC
+========================================== */
 
 if (music) {
   music.volume = 0.45;
@@ -48,12 +59,12 @@ function toggleMusic() {
   }
 }
 
-/* =====================================
+/* ==========================================
    PAGE NAVIGATION
-===================================== */
+========================================== */
 
 function nextPage(pageNumber) {
-  document.querySelectorAll(".page").forEach(page => {
+  document.querySelectorAll(".page").forEach((page) => {
     page.classList.remove("active");
   });
 
@@ -82,6 +93,7 @@ function nextPage(pageNumber) {
 
     if (button) {
       button.style.transform = "translateX(0)";
+      button.classList.remove("wiggle");
     }
 
     if (hint) {
@@ -90,27 +102,78 @@ function nextPage(pageNumber) {
   }
 }
 
-/* =====================================
-   FINAL PAGE ANSWERS
-===================================== */
+/* ==========================================
+   FORMSPREE — SAVE AIRIS ANSWER
+========================================== */
+
+async function saveAirisAnswer(choice) {
+  // Prevent duplicate submissions while sending
+  // or after a successful submission.
+  if (replySubmitted || replySubmitting) return;
+
+  replySubmitting = true;
+
+  try {
+    const response = await fetch(FORMSPREE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json"
+      },
+      body: JSON.stringify({
+        choice: choice,
+        source: "For Airis Website"
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error("Formspree could not save the reply.");
+    }
+
+    replySubmitted = true;
+    console.log("Airis reply saved successfully!");
+
+  } catch (error) {
+    console.error("Formspree error:", error);
+
+    const status = document.getElementById("reply-status");
+
+    if (status) {
+      status.textContent =
+        "Your choice couldn't be sent. Please try again if you'd like. 🤎";
+    }
+
+  } finally {
+    replySubmitting = false;
+  }
+}
+
+/* ==========================================
+   PAGE 4 — ANSWER BUTTONS
+========================================== */
 
 function showAnswer(choice) {
   if (choice === "talk") {
+    saveAirisAnswer("YES, I'D LOVE TO!");
     openSurprise();
     return;
   }
 
-  const answer = document.getElementById("answer");
+  if (choice === "time") {
+    saveAirisAnswer("I'M NOT READY YET, BUT THANK YOU");
 
-  if (answer) {
-    answer.textContent =
-      "That's okay. Take all the time you need. Thank you for reading my letter. 🤎🌸";
+    const answer = document.getElementById("answer");
+
+    if (answer) {
+      answer.textContent =
+        "That's okay. Take all the time you need. Thank you for reading my letter. 🤎🌸";
+    }
   }
 }
 
-/* =====================================
+/* ==========================================
    SURPRISE POPUP
-===================================== */
+========================================== */
 
 function openSurprise() {
   const popup = document.getElementById("surprise-popup");
@@ -123,7 +186,7 @@ function openSurprise() {
   popup.classList.remove("show");
   popup.hidden = false;
 
-  // Restart animation
+  // Restart the popup animation.
   void popup.offsetWidth;
 
   popup.classList.add("show");
@@ -141,17 +204,15 @@ function closeSurprise() {
   document.body.classList.remove("popup-open");
 }
 
-document.addEventListener("keydown", event => {
+document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     closeSurprise();
   }
 });
 
-/* =====================================
-   SHY BUTTON ANIMATION
-===================================== */
-
-let shyAttempts = 0;
+/* ==========================================
+   NOT READY BUTTON — CLICK ONLY
+========================================== */
 
 function moveShyButton() {
   const button = document.getElementById("shy-btn");
@@ -161,22 +222,22 @@ function moveShyButton() {
 
   shyAttempts++;
 
-  // First time moves right, second time moves left
   const distance = shyAttempts === 1 ? 65 : -65;
 
   button.style.transform = `translateX(${distance}px)`;
 
   button.classList.remove("wiggle");
+
+  // Restart shake animation.
   void button.offsetWidth;
+
   button.classList.add("wiggle");
 
   if (hint) {
-    if (shyAttempts === 1) {
-      hint.textContent = "Hehe, are you sure? 🥺";
-    } else {
-      hint.textContent =
-        "Okay okay, I won't tease you anymore. 🤎";
-    }
+    hint.textContent =
+      shyAttempts === 1
+        ? "Hehe, are you sure? 🥺"
+        : "Okay okay, I won't tease you anymore. 🤎";
   }
 }
 
@@ -191,6 +252,7 @@ function chooseTime() {
 
   if (button) {
     button.style.transform = "translateX(0)";
+    button.classList.remove("wiggle");
   }
 
   if (hint) {
@@ -200,54 +262,80 @@ function chooseTime() {
   showAnswer("time");
 }
 
-/* =====================================
-   CONNECT SHY BUTTON AUTOMATICALLY
-===================================== */
+/* ==========================================
+   SETUP BUTTONS & PRIVACY NOTICE
+========================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
   const page4 = document.getElementById("page4");
 
   if (!page4) return;
 
-  // Find the second answer button
   const buttons = page4.querySelectorAll("button.btn");
 
-  const timeButton = Array.from(buttons).find(button =>
-    button.getAttribute("onclick")?.includes("time") ||
-    button.id === "shy-btn"
-  );
+  const timeButton = Array.from(buttons).find((button) => {
+    const onclick = button.getAttribute("onclick") || "";
 
-  if (!timeButton) return;
+    return (
+      button.id === "shy-btn" ||
+      onclick.includes("time")
+    );
+  });
 
-  // Set up shy button even if HTML is still the old version
-  timeButton.id = "shy-btn";
-  timeButton.textContent =
-    "I'M NOT READY YET, BUT THANK YOU 🤎";
+  if (timeButton) {
+    timeButton.id = "shy-btn";
 
-  timeButton.removeAttribute("onclick");
- timeButton.addEventListener("click", chooseTime);
-  timeButton.removeAttribute("ontouchstart");
+    timeButton.textContent =
+      "I'M NOT READY YET, BUT THANK YOU 🤎";
 
-  let hint = document.getElementById("shy-hint");
+    // Remove old inline handlers to avoid double clicks.
+    timeButton.removeAttribute("onclick");
+    timeButton.removeAttribute("onmouseenter");
+    timeButton.removeAttribute("ontouchstart");
 
-  if (!hint) {
-    hint = document.createElement("p");
-    hint.id = "shy-hint";
-    hint.setAttribute("aria-live", "polite");
-    timeButton.insertAdjacentElement("afterend", hint);
+    let hint = document.getElementById("shy-hint");
+
+    if (!hint) {
+      hint = document.createElement("p");
+      hint.id = "shy-hint";
+      hint.setAttribute("aria-live", "polite");
+
+      timeButton.insertAdjacentElement("afterend", hint);
+    }
+
+    // CLICK ONLY — NO HOVER!
+    timeButton.addEventListener("click", chooseTime);
   }
 
-// Move on first two clicks, then allow choice
-timeButton.addEventListener("click", chooseTime);
+  // Tell the visitor their choice will be recorded.
+  let notice = document.getElementById("reply-notice");
 
-  // Move on touch for phones
-  timeButton.addEventListener("touchstart", event => {
-    if (shyAttempts < 2) {
-      event.preventDefault();
-      moveShyButton();
-    }
-  }, { passive: false });
+  if (!notice) {
+    notice = document.createElement("p");
+    notice.id = "reply-notice";
 
-  // Move on first two clicks, then allow choice
-  timeButton.addEventListener("click", chooseTime);
+    notice.textContent =
+      "Your choice will be shared with me. No pressure to answer. 🤎";
+
+    page4.appendChild(notice);
+  }
+
+  notice.style.fontSize = "13px";
+  notice.style.color = "#795640";
+  notice.style.textAlign = "center";
+  notice.style.marginTop = "16px";
+
+  // Show a message if sending fails.
+  let status = document.getElementById("reply-status");
+
+  if (!status) {
+    status = document.createElement("p");
+    status.id = "reply-status";
+    status.setAttribute("aria-live", "polite");
+    page4.appendChild(status);
+  }
+
+  status.style.fontSize = "13px";
+  status.style.color = "#795640";
+  status.style.textAlign = "center";
 });
