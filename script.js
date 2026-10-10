@@ -356,7 +356,6 @@ document.addEventListener("DOMContentLoaded", () => {
     status = document.createElement("p");
     status.id = "reply-status";
     status.setAttribute("aria-live", "polite");
-
     page4.appendChild(status);
   }
 
