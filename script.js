@@ -1,7 +1,8 @@
 
 /* ==========================================
-   FOR AIRIS — FULL SCRIPT
-   Music, pages, surprise & Formspree
+   FOR AIRIS — COMPLETE SCRIPT
+   Music + Pages + Surprise + Formspree
+   Malaysia Time (MYT / UTC+8)
 ========================================== */
 
 const FORMSPREE_URL = "https://formspree.io/f/myekjbeg";
@@ -15,7 +16,7 @@ let replySubmitted = false;
 let replySubmitting = false;
 
 /* ==========================================
-   BACKGROUND MUSIC
+   MUSIC
 ========================================== */
 
 if (music) {
@@ -103,25 +104,51 @@ function nextPage(pageNumber) {
 }
 
 /* ==========================================
-   FORMSPREE — SAVE AIRIS ANSWER
+   MALAYSIA DATE & TIME
+========================================== */
+
+function getMalaysiaTime() {
+  const now = new Date();
+
+  const formatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Kuala_Lumpur",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23"
+  });
+
+  return formatter.format(now) + " MYT";
+}
+
+/* ==========================================
+   FORMSPREE DASHBOARD
 ========================================== */
 
 async function saveAirisAnswer(choice) {
-  // Prevent duplicate submissions while sending
-  // or after a successful submission.
   if (replySubmitted || replySubmitting) return;
 
   replySubmitting = true;
+
+  const status = document.getElementById("reply-status");
+
+  if (status) {
+    status.textContent = "Sending your choice... 🤎";
+  }
 
   try {
     const response = await fetch(FORMSPREE_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Accept: "application/json"
+        "Accept": "application/json"
       },
       body: JSON.stringify({
         choice: choice,
+        malaysia_time: getMalaysiaTime(),
         source: "For Airis Website"
       })
     });
@@ -131,12 +158,15 @@ async function saveAirisAnswer(choice) {
     }
 
     replySubmitted = true;
+
+    if (status) {
+      status.textContent = "Your choice has been sent. Thank you. 🤎";
+    }
+
     console.log("Airis reply saved successfully!");
 
   } catch (error) {
     console.error("Formspree error:", error);
-
-    const status = document.getElementById("reply-status");
 
     if (status) {
       status.textContent =
@@ -149,7 +179,7 @@ async function saveAirisAnswer(choice) {
 }
 
 /* ==========================================
-   PAGE 4 — ANSWER BUTTONS
+   PAGE 4 — ANSWERS
 ========================================== */
 
 function showAnswer(choice) {
@@ -186,7 +216,6 @@ function openSurprise() {
   popup.classList.remove("show");
   popup.hidden = false;
 
-  // Restart the popup animation.
   void popup.offsetWidth;
 
   popup.classList.add("show");
@@ -228,7 +257,6 @@ function moveShyButton() {
 
   button.classList.remove("wiggle");
 
-  // Restart shake animation.
   void button.offsetWidth;
 
   button.classList.add("wiggle");
@@ -263,7 +291,7 @@ function chooseTime() {
 }
 
 /* ==========================================
-   SETUP BUTTONS & PRIVACY NOTICE
+   BUTTON SETUP & PRIVACY NOTICE
 ========================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -288,7 +316,6 @@ document.addEventListener("DOMContentLoaded", () => {
     timeButton.textContent =
       "I'M NOT READY YET, BUT THANK YOU 🤎";
 
-    // Remove old inline handlers to avoid double clicks.
     timeButton.removeAttribute("onclick");
     timeButton.removeAttribute("onmouseenter");
     timeButton.removeAttribute("ontouchstart");
@@ -303,11 +330,9 @@ document.addEventListener("DOMContentLoaded", () => {
       timeButton.insertAdjacentElement("afterend", hint);
     }
 
-    // CLICK ONLY — NO HOVER!
     timeButton.addEventListener("click", chooseTime);
   }
 
-  // Tell the visitor their choice will be recorded.
   let notice = document.getElementById("reply-notice");
 
   if (!notice) {
@@ -325,17 +350,18 @@ document.addEventListener("DOMContentLoaded", () => {
   notice.style.textAlign = "center";
   notice.style.marginTop = "16px";
 
-  // Show a message if sending fails.
   let status = document.getElementById("reply-status");
 
   if (!status) {
     status = document.createElement("p");
     status.id = "reply-status";
     status.setAttribute("aria-live", "polite");
+
     page4.appendChild(status);
   }
 
   status.style.fontSize = "13px";
   status.style.color = "#795640";
   status.style.textAlign = "center";
+  status.style.marginTop = "8px";
 });
