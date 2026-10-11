@@ -2,7 +2,7 @@
 /* ==========================================
    FOR AIRIS — COMPLETE SCRIPT
    Music + Pages + Surprise + Formspree
-   Malaysia Time (MYT / UTC+8)
+   Malaysia Time + Optional Little Note
 ========================================== */
 
 const FORMSPREE_URL = "https://formspree.io/f/myekjbeg";
@@ -14,6 +14,8 @@ const musicStatus = document.getElementById("music-status");
 let shyAttempts = 0;
 let replySubmitted = false;
 let replySubmitting = false;
+let noteSubmitted = false;
+let noteSubmitting = false;
 
 /* ==========================================
    MUSIC
@@ -97,20 +99,16 @@ function nextPage(pageNumber) {
       button.classList.remove("wiggle");
     }
 
-    if (hint) {
-      hint.textContent = "";
-    }
+    if (hint) hint.textContent = "";
   }
 }
 
 /* ==========================================
-   MALAYSIA DATE & TIME
+   MALAYSIA TIME
 ========================================== */
 
 function getMalaysiaTime() {
-  const now = new Date();
-
-  const formatter = new Intl.DateTimeFormat("en-GB", {
+  return new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Kuala_Lumpur",
     day: "2-digit",
     month: "2-digit",
@@ -119,13 +117,11 @@ function getMalaysiaTime() {
     minute: "2-digit",
     second: "2-digit",
     hourCycle: "h23"
-  });
-
-  return formatter.format(now) + " MYT";
+  }).format(new Date()) + " MYT";
 }
 
 /* ==========================================
-   FORMSPREE DASHBOARD
+   FORMSPREE — CHOICE
 ========================================== */
 
 async function saveAirisAnswer(choice) {
@@ -154,7 +150,7 @@ async function saveAirisAnswer(choice) {
     });
 
     if (!response.ok) {
-      throw new Error("Formspree could not save the reply.");
+      throw new Error("Could not save choice.");
     }
 
     replySubmitted = true;
@@ -163,10 +159,8 @@ async function saveAirisAnswer(choice) {
       status.textContent = "Your choice has been sent. Thank you. 🤎";
     }
 
-    console.log("Airis reply saved successfully!");
-
   } catch (error) {
-    console.error("Formspree error:", error);
+    console.error("Formspree choice error:", error);
 
     if (status) {
       status.textContent =
@@ -198,6 +192,8 @@ function showAnswer(choice) {
       answer.textContent =
         "That's okay. Take all the time you need. Thank you for reading my letter. 🤎🌸";
     }
+
+    showLittleNote();
   }
 }
 
@@ -209,7 +205,7 @@ function openSurprise() {
   const popup = document.getElementById("surprise-popup");
 
   if (!popup) {
-    console.warn("Surprise popup not found in index.html");
+    console.warn("Surprise popup not found.");
     return;
   }
 
@@ -234,9 +230,7 @@ function closeSurprise() {
 }
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") {
-    closeSurprise();
-  }
+  if (event.key === "Escape") closeSurprise();
 });
 
 /* ==========================================
@@ -251,14 +245,11 @@ function moveShyButton() {
 
   shyAttempts++;
 
-  const distance = shyAttempts === 1 ? 65 : -65;
-
-  button.style.transform = `translateX(${distance}px)`;
+  button.style.transform =
+    `translateX(${shyAttempts === 1 ? 65 : -65}px)`;
 
   button.classList.remove("wiggle");
-
   void button.offsetWidth;
-
   button.classList.add("wiggle");
 
   if (hint) {
@@ -283,15 +274,98 @@ function chooseTime() {
     button.classList.remove("wiggle");
   }
 
-  if (hint) {
-    hint.textContent = "";
-  }
+  if (hint) hint.textContent = "";
 
   showAnswer("time");
 }
 
 /* ==========================================
-   BUTTON SETUP & PRIVACY NOTICE
+   OPTIONAL LITTLE NOTE
+========================================== */
+
+function showLittleNote() {
+  const box = document.getElementById("little-note-box");
+
+  if (!box) return;
+
+  box.hidden = false;
+}
+
+function hideLittleNote() {
+  const box = document.getElementById("little-note-box");
+
+  if (box) box.hidden = true;
+}
+
+async function sendLittleNote() {
+  if (noteSubmitted || noteSubmitting) return;
+
+  const textarea = document.getElementById("little-note-text");
+  const status = document.getElementById("little-note-status");
+  const sendButton = document.getElementById("send-little-note");
+
+  if (!textarea) return;
+
+  const comment = textarea.value.trim();
+
+  if (!comment) {
+    if (status) {
+      status.textContent =
+        "It's okay to leave this empty. You don't have to write anything. 🤎";
+    }
+    return;
+  }
+
+  noteSubmitting = true;
+
+  if (sendButton) sendButton.disabled = true;
+
+  if (status) status.textContent = "Sending your little note... 💌";
+
+  try {
+    const response = await fetch(FORMSPREE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({
+        choice: "I'M NOT READY YET, BUT THANK YOU",
+        comment: comment,
+        malaysia_time: getMalaysiaTime(),
+        source: "For Airis Website — Little Note"
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error("Could not send note.");
+    }
+
+    noteSubmitted = true;
+    textarea.disabled = true;
+
+    if (status) {
+      status.textContent =
+        "Your little note has been sent. Thank you for sharing. 🤎🌸";
+    }
+
+  } catch (error) {
+    console.error("Formspree note error:", error);
+
+    if (status) {
+      status.textContent =
+        "Your note couldn't be sent. You can try again if you'd like. 🤎";
+    }
+
+    if (sendButton) sendButton.disabled = false;
+
+  } finally {
+    noteSubmitting = false;
+  }
+}
+
+/* ==========================================
+   SETUP PAGE 4
 ========================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -326,12 +400,13 @@ document.addEventListener("DOMContentLoaded", () => {
       hint = document.createElement("p");
       hint.id = "shy-hint";
       hint.setAttribute("aria-live", "polite");
-
       timeButton.insertAdjacentElement("afterend", hint);
     }
 
     timeButton.addEventListener("click", chooseTime);
   }
+
+  /* Privacy notice */
 
   let notice = document.getElementById("reply-notice");
 
@@ -345,10 +420,12 @@ document.addEventListener("DOMContentLoaded", () => {
     page4.appendChild(notice);
   }
 
-  notice.style.fontSize = "13px";
-  notice.style.color = "#795640";
-  notice.style.textAlign = "center";
-  notice.style.marginTop = "16px";
+  notice.style.cssText = `
+    font-size: 13px;
+    color: #795640;
+    text-align: center;
+    margin-top: 16px;
+  `;
 
   let status = document.getElementById("reply-status");
 
@@ -359,8 +436,76 @@ document.addEventListener("DOMContentLoaded", () => {
     page4.appendChild(status);
   }
 
-  status.style.fontSize = "13px";
-  status.style.color = "#795640";
-  status.style.textAlign = "center";
-  status.style.marginTop = "8px";
+  status.style.cssText = `
+    font-size: 13px;
+    color: #795640;
+    text-align: center;
+    margin-top: 8px;
+  `;
+
+  /* Create the little note box */
+
+  const noteBox = document.createElement("div");
+  noteBox.id = "little-note-box";
+  noteBox.hidden = true;
+
+  noteBox.innerHTML = `
+    <div class="little-note-inner">
+      <div class="little-note-flower">🌸 🤎 🌸</div>
+
+      <h3>That's okay, take your time.</h3>
+
+      <p>
+        You don't have to explain anything.
+        But if there's something you'd like me to know,
+        you can leave a little note here.
+      </p>
+
+      <textarea
+        id="little-note-text"
+        maxlength="2000"
+        placeholder="Write anything you feel... 💌"
+        aria-label="Your optional little note"
+      ></textarea>
+
+      <button
+        id="send-little-note"
+        type="button"
+        class="little-note-send"
+      >
+        Send my little note 🤎
+      </button>
+
+      <button
+        id="close-little-note"
+        type="button"
+        class="little-note-close"
+      >
+        Maybe another time 🌷
+      </button>
+
+      <p class="little-note-privacy">
+        Writing is optional. Your message will only be
+        shared with me if you choose to send it.
+      </p>
+
+      <p id="little-note-status" aria-live="polite"></p>
+    </div>
+  `;
+
+  const answer = document.getElementById("answer");
+
+  if (answer) {
+    answer.insertAdjacentElement("afterend", noteBox);
+  } else {
+    page4.appendChild(noteBox);
+  }
+
+  document
+    .getElementById("send-little-note")
+    .addEventListener("click", sendLittleNote);
+
+  document
+    .getElementById("close-little-note")
+    .addEventListener("click", hideLittleNote);
 });
