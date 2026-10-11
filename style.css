@@ -1396,3 +1396,126 @@ h2 {
 #shy-btn.wiggle {
   animation: shyWiggle 0.35s ease;
 }
+
+
+/* ==========================================
+   FOR AIRIS — OPTIONAL LITTLE NOTE
+========================================== */
+
+#little-note-box[hidden] {
+  display: none !important;
+}
+
+#little-note-box {
+  width: 100%;
+  max-width: 540px;
+  margin: 28px auto;
+  padding: 12px;
+  background: #f7ede1;
+  border: 1px solid #d7bca5;
+  border-radius: 24px;
+  box-sizing: border-box;
+}
+
+.little-note-inner {
+  padding: 24px 18px;
+  background: #fffcf7;
+  border: 1px solid #d7bca5;
+  border-radius: 18px;
+  text-align: center;
+}
+
+.little-note-flower {
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+.little-note-inner h3 {
+  color: #593d30;
+  font-family: Georgia, serif;
+  font-size: 25px;
+  margin: 0 0 14px;
+}
+
+.little-note-inner > p {
+  color: #795d4c;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+#little-note-text {
+  display: block;
+  width: 100%;
+  min-height: 125px;
+  padding: 15px;
+  margin: 20px 0 14px;
+  box-sizing: border-box;
+  border: 1px solid #d7bca5;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #593d30;
+  font-family: Georgia, serif;
+  font-size: 16px;
+  resize: vertical;
+}
+
+#little-note-text:focus {
+  outline: 2px solid #b68c75;
+  outline-offset: 2px;
+}
+
+.little-note-send,
+.little-note-close {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  margin: 10px 0;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.little-note-send {
+  background: #805b45;
+  border: 1px solid #805b45;
+  color: #ffffff;
+}
+
+.little-note-close {
+  background: transparent;
+  border: 1px solid #b79b85;
+  color: #593d30;
+}
+
+.little-note-send:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.little-note-inner .little-note-privacy {
+  font-size: 12px;
+  color: #8a7161;
+  margin-top: 16px;
+}
+
+#little-note-status {
+  font-size: 13px;
+  color: #795640;
+  min-height: 20px;
+}
+
+@media (max-width: 480px) {
+  #little-note-box {
+    padding: 8px;
+  }
+
+  .little-note-inner {
+    padding: 20px 14px;
+  }
+
+  .little-note-inner h3 {
+    font-size: 22px;
+  }
+}
